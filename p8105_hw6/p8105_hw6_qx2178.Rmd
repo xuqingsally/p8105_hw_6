@@ -3,6 +3,8 @@ title: "p8105_hw6_qx2178"
 author: "Qing Xu"
 date: "November 9, 2017"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r}
