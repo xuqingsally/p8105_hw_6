@@ -1,0 +1,23 @@
+"0","noaa<- read_csv(""../data/nynoaadat.zip"") %>%
+       group_by(id)
+obser<- summarize(noaa, n = n())
+table(is.na(noaa$snow)) 
+table(is.na(noaa$tmax))
+Snow<- aggregate(snow ~ id, data = noaa, function(x) {sum(is.na(x))}, na.action = NULL) %>%
+    ggplot(aes(x = id, y = snow)) + 
+    geom_point(alpha = .3)
+    labs(title = ""Number of missing snowfall data of each station"",
+    y = ""Number of missing snowfall data""
+  )
+Snow
+
+Tmax<- aggregate(tmax ~ id, data = noaa, function(x) {sum(is.na(x))}, na.action = NULL) %>%
+ggplot(aes(x = id, y = tmax)) + 
+    geom_point(alpha = .3) +
+    labs(title = ""Number of missing tmax of each station"",
+    y = ""Number of missing tmax""
+  )
+Tmax"
+"2","'""r_3.1""' is not recognized as an internal or external command,
+operable program or batch file.
+"

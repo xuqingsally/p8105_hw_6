@@ -7,11 +7,25 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r}
+```{r setup, include=FALSE}
+library(flexdashboard)
 library(tidyverse)
+library(janitor)
+library(stringr)
+library(forcats)
+library(viridis)
+library(plotly)
+library(shiny)
 library(httr)
 library(jsonlite)
+library(zipcode)
+library(maps)
+```
 
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
 get_all_inspections = function(url) {
   
   all_inspections = vector("list", length = 0)
@@ -48,3 +62,79 @@ nyc_inspections = get_all_inspections(url) %>%
   bind_rows() 
 
 ```
+
+```{r}
+boros = nyc_inspections %>% distinct(boro) %>% pull()
+
+# selectInput widget
+selectInput("boro_choice", label = h3("Select boro"),
+            choices = boros, selected = "Manhattan")
+```
+
+
+Row
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+library(ggmap)
+nyc_inspections$location<- paste0(nyc_inspections$building, " ", nyc_inspections$street, ", ", nyc_inspections$boro, ", CT ", nyc_inspections$zipcode)
+nyc<- head(nyc_inspections, 2500)
+geo <- geocode(location = nyc$location, output="latlon", source="google")
+stations$lon <- geo$lon
+stations$lat <- geo$lat
+  
+
+AddressFrequency <- function(addresses){
+  tab <- table(addresses)
+  unique.points <- data.frame(address=names(tab), frequency = c(tab))
+  rownames(unique.points) <- NULL
+  unique.points
+}
+all.addresses <- c(as.character(address$boro),as.character(address$zipcode))
+freq <- AddressFrequency(all.addresses)
+freq <- cbind(freq, geocode(as.character(freq$address)))
+
+centre = c(mean(freq$lon, na.rm=TRUE), mean(freq$lat, na.rm=TRUE))
+map = get_map(location = centre, zoom=11, scale=2, source = "google", maptype="roadmap")
+# to use factos for frequencies
+# freq$frequency <- factor(freq$frequency)
+map.plot = ggmap(map)
+map.plot = map.plot + geom_point(data = freq, aes(x = lon, y = lat, colour = frequency), size=3)
+# to use color brewer gradient scale:
+# library(RColorBrewer)
+# map.plot = map.plot +  scale_colour_gradientn(colours=rainbow(4))
+print(map.plot)
+
+```
+
+Row {.tabset .tabset-fade}
+-----------------------------------------------------------------------
+
+### Chart B
+```{r}
+nyc_inspections$score<- as.numeric(nyc_inspections$score)
+nyc_inspections %>% 
+  filter(grade %in% c("A","B","C"), boro != "Missing") %>% 
+  plot_ly(x = ~grade, y = ~score, type = "box",
+          alpha = 0.5, 
+          color = ~grade) %>%
+  layout(title = "Score distribution in grades")
+
+```
+
+### Chart C
+
+```{r}
+bar_plot<- nyc_inspections %>% 
+  filter(grade %in% c("A","B","C"), boro != "Missing") %>% 
+  mutate(boro = fct_infreq(boro)) %>%
+  ggplot(aes(x = boro, fill = grade)) + 
+  geom_bar()+
+  labs(title = "Grades of restaurants in each boro")
+
+ggplotly(bar_plot)
+
+```
+

@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1510521025260.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "BC7B86CD",
+    "lastKnownWriteTime" : 8389754659302220320,
+    "last_content_update" : 1510521025260,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "1D7187C0",
+        "caption" : "noaa",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=noaa&cache_key=1D7187C0",
+        "displayedObservations" : 2595176,
+        "environment" : "",
+        "object" : "noaa",
+        "preview" : 0,
+        "totalObservations" : 2595176,
+        "variables" : 7
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

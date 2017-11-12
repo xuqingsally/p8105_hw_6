@@ -1,0 +1,74 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: row
+  runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(janitor)
+library(stringr)
+library(forcats)
+library(viridis)
+library(plotly)
+library(shiny)
+library(httr)
+library(jsonlite)
+library(zipcode)
+library(maps)
+```
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+noaa<- read_csv("nynoaadat.zip") 
+
+```
+
+```{r}
+boros = nyc_inspections %>% distinct(boro) %>% pull()
+
+# selectInput widget
+selectInput("boro_choice", label = h3("Select boro"),
+            choices = boros, selected = "Manhattan")
+```
+
+
+Row
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+
+
+```
+
+Row {.tabset .tabset-fade}
+-----------------------------------------------------------------------
+
+### Chart B
+```{r}
+noaa<- separate(noaa,date, into = c("year", "month","day"), sep = "-")
+  noaa<- noaa%<%
+    group_by(year)
+noaa$tmax<- as.numeric(noaa$tmax)
+hist<- ggplot(noaa, aes(x = tmax, fill = year)) + 
+  geom_histogram(alpha= 0.8)
+
+ggplotly(hist)
+
+```
+
+```
+
+### Chart C
+
+```{r}
+
+```
+
