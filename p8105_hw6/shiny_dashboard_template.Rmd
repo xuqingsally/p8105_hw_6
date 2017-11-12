@@ -77,7 +77,33 @@ Row
 ### Chart A
 
 ```{r}
+library(ggmap)
+nyc_inspections$location<- paste0(nyc_inspections$street, ", ", nyc_inspections$boro, ", CT ", nyc_inspections$zipcode)
+geo <- geocode(location = nyc_inspections$location, output="latlon", source="google")
+stations$lon <- geo$lon
+stations$lat <- geo$lat
+  
 
+AddressFrequency <- function(addresses){
+  tab <- table(addresses)
+  unique.points <- data.frame(address=names(tab), frequency = c(tab))
+  rownames(unique.points) <- NULL
+  unique.points
+}
+all.addresses <- c(as.character(address$boro),as.character(address$zipcode))
+freq <- AddressFrequency(all.addresses)
+freq <- cbind(freq, geocode(as.character(freq$address)))
+
+centre = c(mean(freq$lon, na.rm=TRUE), mean(freq$lat, na.rm=TRUE))
+map = get_map(location = centre, zoom=11, scale=2, source = "google", maptype="roadmap")
+# to use factos for frequencies
+# freq$frequency <- factor(freq$frequency)
+map.plot = ggmap(map)
+map.plot = map.plot + geom_point(data = freq, aes(x = lon, y = lat, colour = frequency), size=3)
+# to use color brewer gradient scale:
+# library(RColorBrewer)
+# map.plot = map.plot +  scale_colour_gradientn(colours=rainbow(4))
+print(map.plot)
 
 ```
 
