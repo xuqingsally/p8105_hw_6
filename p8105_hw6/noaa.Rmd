@@ -33,16 +33,38 @@ ggplotly(hist)
 
 ```
 
+
 ```{r}
-limit<- filter(noaa, snow < 100 & snow > 0) %>%
-        group_by(year) 
-        
-den<-ggplot(limit, aes(x = snow, y = year)) + 
-  geom_density_ridges(scale = .85) +
-  labs(title = "snowfall density in each year")
-
-ggplotly(den)
-
-
-
+hexplot = filter(noaa, !is.na(tmax))%>%
+  filter(!is.na(tmin))%>%
+  mutate(tmax = as.numeric(tmax))%>%
+  mutate(tmin = as.numeric(tmin))%>%
+ggplot(aes(tmin, tmax)) +
+  geom_hex()+
+   labs(
+    title = "Tmax against tmin",
+    x = "tmin",
+    y = "tmax",
+    caption = "ny_noaa_data_year"
+  ) + 
+  theme_classic()
+ggplotly(hexplot)
 ```
+
+```{r}
+ny_noaa_data_snowfall =
+  filter(noaa, snow > 0 & snow < 100)%>%
+  ggplot(aes(x = year, y = snow, fill = year, color = year)) + 
+  geom_violin()+ 
+  labs(
+    title = "Snowfall Distribution of each year",
+    x = "Snowfall Distribution",
+    y = "Year",
+    caption = "Data from ny_noaa_data"
+  ) + 
+  theme_classic() + 
+  theme(legend.position = "bottom")
+ggplotly(ny_noaa_data_snowfall)
+```
+
+ 
