@@ -17,6 +17,8 @@ library(plotly)
 library(shiny)
 library(httr)
 library(jsonlite)
+library(zipcode)
+library(maps)
 ```
 
 Column {.sidebar}
@@ -61,7 +63,11 @@ nyc_inspections = get_all_inspections(url) %>%
 ```
 
 ```{r}
+boros = nyc_inspections %>% distinct(boro) %>% pull()
 
+# selectInput widget
+selectInput("boro_choice", label = h3("Select boro"),
+            choices = boros, selected = "Manhattan")
 ```
 
 
@@ -71,14 +77,7 @@ Row
 ### Chart A
 
 ```{r}
-bar_plot<- nyc_inspections %>% 
-  group_by(boro, grade) %>% 
-  filter(grade %in% c("A","B","C"), boro != "Missing") %>% 
-  ggplot(aes(x = boro, fill = grade)) + 
-  geom_bar()+
-  labs(title = "Grades of restaurants in each boro")
 
-ggplotly(bar_plot)
 
 ```
 
@@ -100,6 +99,14 @@ nyc_inspections %>%
 ### Chart C
 
 ```{r}
+bar_plot<- nyc_inspections %>% 
+  filter(grade %in% c("A","B","C"), boro != "Missing") %>% 
+  mutate(boro = fct_infreq(boro)) %>%
+  ggplot(aes(x = boro, fill = grade)) + 
+  geom_bar()+
+  labs(title = "Grades of restaurants in each boro")
+
+ggplotly(bar_plot)
 
 ```
 
