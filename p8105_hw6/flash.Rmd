@@ -17,8 +17,6 @@ library(plotly)
 library(shiny)
 library(httr)
 library(jsonlite)
-library(zipcode)
-library(maps)
 ```
 
 -----------------------------------------------------------------------
@@ -72,7 +70,7 @@ ggplotly(hist)
 
 ```
 
-```
+
 ### Snowfall Distribution of each year
 
 ```{r}

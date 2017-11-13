@@ -17,122 +17,93 @@ library(plotly)
 library(shiny)
 library(httr)
 library(jsonlite)
-library(zipcode)
-library(maps)
 ```
 
 Column {.sidebar}
 -----------------------------------------------------------------------
 
 ```{r}
-get_all_inspections = function(url) {
-  
-  all_inspections = vector("list", length = 0)
-  
-  loop_index = 1
-  chunk_size = 50000
-  DO_NEXT = TRUE
-  
-  while (DO_NEXT) {
-    message("Getting data, page ", loop_index)
-    
-    all_inspections[[loop_index]] = 
-      GET(url,
-          query = list(`$order` = "zipcode",
-                       `$limit` = chunk_size,
-                       `$offset` = as.integer((loop_index - 1) * chunk_size)
-                       )
-          ) %>%
-      content("text") %>%
-      fromJSON() %>%
-      as_tibble()
-    
-    DO_NEXT = dim(all_inspections[[loop_index]])[1] == chunk_size
-    loop_index = loop_index + 1
-  }
-  
-  all_inspections
-  
-}
-
-url = "https://data.cityofnewyork.us/resource/9w7m-hzhe.json"
-
-nyc_inspections = get_all_inspections(url) %>%
-  bind_rows() 
+noaa<- read_csv("nynoaadat.zip")  %>%
+separate(date, into = c("year", "month","day"), sep = "-")
+noaa$year<- as.numeric(noaa$year)
 
 ```
 
 ```{r}
-boros = nyc_inspections %>% distinct(boro) %>% pull()
+id = noaa %>% distinct(id) %>% pull()
 
-# selectInput widget
-selectInput("boro_choice", label = h3("Select boro"),
-            choices = boros, selected = "Manhattan")
+
+selectInput("id_choice", label = h3("Select id"),
+            choices = id, selected = "US1NYAB0001")
+
 ```
 
 
 Row
 -----------------------------------------------------------------------
 
-### Chart A
+### Tmax against tmin
 
 ```{r}
-library(ggmap)
-nyc_inspections$location<- paste0(nyc_inspections$street, ", ", nyc_inspections$boro, ", CT ", nyc_inspections$zipcode)
-geo <- geocode(location = nyc_inspections$location, output="latlon", source="google")
-stations$lon <- geo$lon
-stations$lat <- geo$lat
+renderPlotly({
+hexplot = filter(noaa, !is.na(tmax))%>%
+  filter(!is.na(tmin))%>%
+  mutate(tmax = as.numeric(tmax))%>%
+  mutate(tmin = as.numeric(tmin))%>%
+  filter(id == input$id_choice) %>%
   
-
-AddressFrequency <- function(addresses){
-  tab <- table(addresses)
-  unique.points <- data.frame(address=names(tab), frequency = c(tab))
-  rownames(unique.points) <- NULL
-  unique.points
-}
-all.addresses <- c(as.character(address$boro),as.character(address$zipcode))
-freq <- AddressFrequency(all.addresses)
-freq <- cbind(freq, geocode(as.character(freq$address)))
-
-centre = c(mean(freq$lon, na.rm=TRUE), mean(freq$lat, na.rm=TRUE))
-map = get_map(location = centre, zoom=11, scale=2, source = "google", maptype="roadmap")
-# to use factos for frequencies
-# freq$frequency <- factor(freq$frequency)
-map.plot = ggmap(map)
-map.plot = map.plot + geom_point(data = freq, aes(x = lon, y = lat, colour = frequency), size=3)
-# to use color brewer gradient scale:
-# library(RColorBrewer)
-# map.plot = map.plot +  scale_colour_gradientn(colours=rainbow(4))
-print(map.plot)
+ggplot(aes(tmin, tmax)) +
+  geom_hex()+
+   labs(
+    x = "Minimum temperature (tenths of degrees C)",
+    y = "Maximum temperature (tenths of degrees C)",
+    caption = "ny_noaa_data_year"
+  ) + 
+  theme_classic()
+ggplotly(hexplot)
+})
 
 ```
 
 Row {.tabset .tabset-fade}
 -----------------------------------------------------------------------
 
-### Chart B
+### Tmax Distribution of each year
 ```{r}
-nyc_inspections$score<- as.numeric(nyc_inspections$score)
-nyc_inspections %>% 
-  filter(grade %in% c("A","B","C"), boro != "Missing") %>% 
-  plot_ly(x = ~grade, y = ~score, type = "box",
-          alpha = 0.5, 
-          color = ~grade) %>%
-  layout(title = "Score distribution in grades")
+renderPlotly({
+  noaa<- noaa %>%
+    group_by(year)
+noaa$tmax<- as.numeric(noaa$tmax)
+noaa<- filter(id == input$id_choice)
+hist<- ggplot(noaa, aes(x =tmax , fill = year)) + 
+  geom_histogram(alpha= 0.8) +
+  labs(x = "Maximum temperature (tenths of degrees C)", y = "Number")
+
+ggplotly(hist)
+})
 
 ```
 
-### Chart C
+
+
+### Snowfall Distribution of each year
 
 ```{r}
-bar_plot<- nyc_inspections %>% 
-  filter(grade %in% c("A","B","C"), boro != "Missing") %>% 
-  mutate(boro = fct_infreq(boro)) %>%
-  ggplot(aes(x = boro, fill = grade)) + 
-  geom_bar()+
-  labs(title = "Grades of restaurants in each boro")
-
-ggplotly(bar_plot)
-
+renderPlotly({
+ny_noaa_data_snowfall =
+  filter(noaa, snow > 0 & snow < 100)%>%
+  filter(id == input$id_choice)
+  ggplot(aes(x = year, y = snow, fill = year, color = year)) + 
+  geom_violin()+ 
+  labs(
+    x = "year",
+    y = "snowfall(mm)",
+    caption = "Data from ny_noaa_data"
+  ) + 
+  theme_classic() + 
+  theme(legend.position = "bottom")
+ggplotly(ny_noaa_data_snowfall)
+})
 ```
+
 
