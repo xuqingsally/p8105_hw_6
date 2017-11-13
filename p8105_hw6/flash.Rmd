@@ -1,8 +1,8 @@
 ---
-title: "Data of NOAA"
+title: "NOAA Dashboard Without Shiny"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: row
+    source_code: embed
     vertical_layout: fill
 ---
 
@@ -23,10 +23,6 @@ library(jsonlite)
 
 ```{r}
 noaa<- read_csv("nynoaadat.zip") 
-
-```
-
-```{r}
 
 ```
 
@@ -83,7 +79,7 @@ ny_noaa_data_snowfall =
     y = "snowfall(mm)",
     caption = "Data from ny_noaa_data"
   ) + 
-  theme_classic() + 
+  theme(axis.text.x=element_text(angle=90,hjust=1)) + 
   theme(legend.position = "bottom")
 ggplotly(ny_noaa_data_snowfall)
 ```
