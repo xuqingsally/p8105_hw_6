@@ -3,7 +3,7 @@ title: "NOAA Dashboard"
 output: 
   flexdashboard::flex_dashboard:
      source_code: embed
-  runtime: shiny
+
 ---
 
 ```{r setup, include=FALSE}
